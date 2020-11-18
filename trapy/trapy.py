@@ -1,5 +1,12 @@
+import socket
+import logging
+
+from socket_utils import create_receiver_socket, create_sender_socket
+from utils import parse_address
+
 class Conn:
-    pass
+    def __init__(self, sock):
+        self.sock = sock
 
 
 class ConnException(Exception):
@@ -7,7 +14,15 @@ class ConnException(Exception):
 
 
 def listen(address: str) -> Conn:
-    pass
+    sock = create_receiver_socket()
+
+    host, port = parse_address(address)
+
+    conn = Conn(sock)
+    conn.sock.bind((host, port))
+    conn.sock.listen(1)
+
+    return conn
 
 
 def accept(conn) -> Conn:
@@ -27,4 +42,5 @@ def recv(conn: Conn, length: int) -> bytes:
 
 
 def close(conn: Conn):
-    pass
+    conn.sock.close()
+    conn.sock = None
