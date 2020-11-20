@@ -2,6 +2,10 @@ import socket
 import random
 from struct import pack, unpack
 
+def create_packet(data : bytes, conn):
+    flags = create_flag_field()
+    return Packet(data, conn.localport, conn.dest_port, conn.dest_seq_num, conn.dest_seq_num, conn.localhost, conn.dest_host, flags)
+
 def create_first_packet(data : bytes, conn):
     flags = create_flag_field(True)
     return Packet(data, conn.localport, conn.dest_port, conn.dest_seq_num, conn.dest_seq_num, conn.localhost, conn.dest_host, flags)
