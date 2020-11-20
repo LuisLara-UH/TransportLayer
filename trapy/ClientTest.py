@@ -1,3 +1,4 @@
 from trapy import *
 
-dial('10.0.0.2:8080')
+conn = dial('10.0.0.2:8080')
+send(conn, b'aigbieabgiaegbaoedjbgnaeogbneauohgioeahgboeagoaegoeahgoueah')

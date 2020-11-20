@@ -2,9 +2,13 @@ import socket
 import random
 from struct import pack, unpack
 
-def create_packet(data : bytes, conn):
+def create_packet(data : bytes, conn, seq_num):
     flags = create_flag_field()
-    return Packet(data, conn.localport, conn.dest_port, conn.dest_seq_num, conn.dest_seq_num, conn.localhost, conn.dest_host, flags)
+    return Packet(data, conn.localport, conn.dest_port, seq_num, 0, conn.localhost, conn.dest_host, flags)
+
+def create_ack(conn, seq_num):
+    flags = create_flag_field(True)
+    return Packet(b'', conn.localport, conn.dest_port, seq_num, 0, conn.localhost, conn.dest_host, flags)
 
 def create_first_packet(data : bytes, conn):
     flags = create_flag_field(True)
@@ -74,6 +78,8 @@ class Packet:
         self.ack = ack
         self.data_len = len(data)
         self.data = data
+        if not len(self.data) % 2 == 0:
+            self.data += b'0'
         self.checksum = 0
         self.source_ip = source_ip
         self.dest_ip = dest_ip

@@ -1,4 +1,4 @@
-from trapy import Conn
+#from trapy import *
 from pack_utils import create_packet, create_from_receive
 import time
 from timer import Timer
@@ -11,21 +11,20 @@ TIMEOUT_INTERVAL = 0.5
 mutex = threading.Lock()
 
 base = 0
-seq_num = 0
 send_timer = Timer(TIMEOUT_INTERVAL)
 
-def send_data(conn : Conn, data : bytes):
+def send_data(conn, data : bytes):
     global base, send_timer, mutex
 
     packets = divide_into_packets(conn, data)
 
-    threading.Thread(target=receive_ack, args=(conn)).start()
+    threading.Thread(target=receive_ack, args=(conn,)).start()
 
     mutex.acquire()
     while base < len(packets):
         window_size = get_window_size(len(packets))
         for i in range(base, base + window_size):
-            conn.sock.sendto(packets[i], (conn.dest_host, conn.dest_port))
+            conn.sock.sendto(packets[i].pack(), (conn.dest_host, conn.dest_port))
 
         send_timer.start()
 
@@ -38,21 +37,21 @@ def send_data(conn : Conn, data : bytes):
             send_timer.stop()
         else:
             window_size = get_window_size(len(packets))
-        mutex.release()
     
 def get_window_size(packet_length):
     global base
     return min(WINDOW_SIZE, packet_length - base)
 
 def divide_into_packets(conn, data : bytes):
-    global seq_num
+    seq_num = conn.seq_num
     packets = []
 
     while len(data) > 0:
         if len(data) < 20:
-            packets.append(create_packet(data, conn))
+            packets.append(create_packet(data, conn, seq_num))
             break
-        packets.append(create_packet(data[:20], conn))
+        packets.append(create_packet(data[:20], conn, seq_num))
+        seq_num += 1
         data = data[20:]
 
     return packets

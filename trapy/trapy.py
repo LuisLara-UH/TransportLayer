@@ -6,6 +6,8 @@ from utils import parse_address
 from pack_utils import create_syn_packet, create_from_receive, create_first_packet, create_synack_packet
 from struct import pack, unpack
 from timer import Timer
+from sender import send_data
+from receiver import receive
 
 IP_ADDRESS_CLIENT = '10.0.0.1'
 PORT_CLIENT = 8080
@@ -73,11 +75,17 @@ def dial(address : str) -> Conn:
 
 
 def send(conn: Conn, data: bytes) -> int:
-    pass
+    send_data(conn, data)
 
 
 def recv(conn: Conn, length: int) -> bytes:
-    pass
+    packets = receive(conn, length)
+    data = b''
+
+    for packet in packets:
+        data += packet.data[:packet.data_len]
+
+    return data
 
 
 def close(conn: Conn):
