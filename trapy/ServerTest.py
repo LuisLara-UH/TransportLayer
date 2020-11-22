@@ -2,4 +2,5 @@ from trapy import *
 
 conn = listen('10.0.0.2:8080')
 conn_acc = accept(conn)
-print(recv(conn_acc, 1))
+print(recv(conn_acc, 1000))
+recv(conn_acc, 20)

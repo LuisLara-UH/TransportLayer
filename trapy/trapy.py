@@ -3,10 +3,10 @@ import logging
 
 from socket_utils import *
 from utils import parse_address
-from pack_utils import create_syn_packet, create_from_receive, create_first_packet, create_synack_packet
+from pack_utils import *
 from struct import pack, unpack
 from timer import Timer
-from sender import send_data
+from sender import send_data, PACKET_DATA_SIZE
 from receiver import receive
 
 IP_ADDRESS_CLIENT = '10.0.0.1'
@@ -21,6 +21,8 @@ class Conn:
         self.localhost = localhost
         self.localport = localport
         self.sock.bind((localhost, localport))
+        self.recvbytes = b''
+        self.close = False
 
 class ConnException(Exception):
     pass
@@ -75,19 +77,37 @@ def dial(address : str) -> Conn:
 
 
 def send(conn: Conn, data: bytes) -> int:
-    send_data(conn, data)
+    sent = send_data(conn, data)
+    print('Sent')      
+    
+    return sent      
 
 
 def recv(conn: Conn, length: int) -> bytes:
-    packets = receive(conn, length)
-    data = b''
+    cant_bytes_to_receive = length - len(conn.recvbytes)
+    if cant_bytes_to_receive > 0:
+        cant_packs_to_receive = length / PACKET_DATA_SIZE
+        if not length % PACKET_DATA_SIZE == 0:
+            cant_packs_to_receive += 1
 
-    for packet in packets:
-        data += packet.data[:packet.data_len]
+        packets = receive(conn, cant_packs_to_receive)
+
+        for packet in packets:
+            conn.recvbytes += packet.data[:packet.data_len]
+
+    print('Received')
+    data = conn.recvbytes[:length]
+    conn.recvbytes = conn.recvbytes[length:]
+
+    if conn.close:
+        conn.sock = None
+        print('Connection closed')
 
     return data
 
 
 def close(conn: Conn):
-    conn.sock.close()
+    fin_packet = create_fin_packet(conn)
+    wait_for_fin(conn, fin_packet.pack())
     conn.sock = None
+    print('Connection closed')

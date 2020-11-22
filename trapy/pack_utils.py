@@ -6,9 +6,13 @@ def create_packet(data : bytes, conn, seq_num):
     flags = create_flag_field()
     return Packet(data, conn.localport, conn.dest_port, seq_num, 0, conn.localhost, conn.dest_host, flags)
 
+def create_last(data : bytes, conn, seq_num):
+    flags = create_flag_field(False, False, True)
+    return Packet(data, conn.localport, conn.dest_port, seq_num, 0, conn.localhost, conn.dest_host, flags)
+
 def create_ack(conn, seq_num):
     flags = create_flag_field(True)
-    return Packet(b'', conn.localport, conn.dest_port, seq_num, 0, conn.localhost, conn.dest_host, flags)
+    return Packet(b'', conn.localport, conn.dest_port, 0, seq_num, conn.localhost, conn.dest_host, flags)
 
 def create_first_packet(data : bytes, conn):
     flags = create_flag_field(True)
@@ -30,19 +34,25 @@ def create_synack_packet(conn):
 
     return packet.pack()
 
+def create_fin_packet(conn):
+    flags = create_flag_field(False, False, False, True)
+    return Packet(b'', conn.localport, conn.dest_port, 0, 0, conn.localhost, conn.dest_host, flags)
+
 def create_from_receive(pack):
     new_pack = Packet()
     new_pack.unpack(pack)
 
     return new_pack
 
-def create_flag_field(ack = False, syn = False, fin = False, cwr = False, ece = False):
+def create_flag_field(ack = False, syn = False, last = False, fin = False, cwr = False, ece = False):
     flag_field = 0
 
     if ack:
         flag_field += 0b00010000
     if syn:
         flag_field += 0b00000010
+    if last:
+        flag_field += 0b00100000
     if fin:
         flag_field += 0b00000001
     if cwr:
@@ -133,3 +143,13 @@ class Packet:
         is_ack = (self.flags >> 4) & 1
 
         return (is_ack == 1)
+
+    def is_last(self):
+        is_last = (self.flags >> 5) & 1
+
+        return (is_last == 1)
+
+    def is_fin(self):
+        is_fin = self.flags & 1
+
+        return (is_fin == 1)
