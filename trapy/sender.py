@@ -37,8 +37,7 @@ def send_data(conn, data : bytes):
             try:
                 received[i]
             except KeyError:
-                if random.randint(0, 6) > 2:
-                    conn.sock.sendto(packets[i].pack(), (conn.dest_host, conn.dest_port))
+                conn.sock.sendto(packets[i].pack(), (conn.dest_host, conn.dest_port))
                 print('Packet', packets[i].seq_num, 'sent')
 
         send_timer.start()

@@ -1,5 +1,6 @@
 import socket
 import logging
+import subprocess
 
 from socket_utils import *
 from utils import parse_address
@@ -9,7 +10,7 @@ from timer import Timer
 from sender import send_data, PACKET_DATA_SIZE
 from receiver import receive
 
-IP_ADDRESS_CLIENT = '10.0.0.1'
+IP_ADDRESS_CLIENT = subprocess.check_output(['hostname', '-s', '-I']).decode('utf8')[:-2]
 PORT_CLIENT = 8080
 IP_ADDRESS_SERVER = '10.0.0.2'
 PORT_SERVER = 8080
@@ -77,13 +78,20 @@ def dial(address : str) -> Conn:
 
 
 def send(conn: Conn, data: bytes) -> int:
+    if conn.close:
+        raise ConnException('Connection closed')
+
     sent = send_data(conn, data)
-    print('Sent')      
+    cant_bytes_sent = sent * PACKET_DATA_SIZE
+    print('Sent', cant_bytes_sent, 'bytes')      
     
-    return sent      
+    return cant_bytes_sent      
 
 
 def recv(conn: Conn, length: int) -> bytes:
+    if conn.close:
+        raise ConnException('Connection closed')
+
     cant_bytes_to_receive = length - len(conn.recvbytes)
     if cant_bytes_to_receive > 0:
         cant_packs_to_receive = length / PACKET_DATA_SIZE

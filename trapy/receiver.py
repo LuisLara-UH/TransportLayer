@@ -25,8 +25,7 @@ def receive(conn, length):
                 received[new_packet.seq_num] = new_packet
             print('Sending ack', new_packet.seq_num)
             ack = create_ack(conn, new_packet.seq_num)
-            if random.randint(0, 6) > 2:
-                conn.sock.sendto(ack.pack(), (conn.dest_host, conn.dest_port))
+            conn.sock.sendto(ack.pack(), (conn.dest_host, conn.dest_port))
 
             while True:
                 try:

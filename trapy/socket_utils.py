@@ -77,6 +77,8 @@ def wait_for_first_pack(conn, synack_pack):
     threading.Thread(target=receive_first_pack, args=(conn, timer)).start()
     timer.start()
 
+    send_times = 1
+
     while True:
         mutex.acquire()
         if not timer.running():
@@ -85,6 +87,10 @@ def wait_for_first_pack(conn, synack_pack):
         if timer.timeout():
             timer.stop()
             conn.sock.sendto(synack_pack, (conn.dest_host, conn.dest_port))
+            send_times += 1
+            if send_times >= 5:
+                mutex.release()
+                break
             timer.start()
         mutex.release()
         time.sleep(SLEEP_INTERVAL)
@@ -123,7 +129,7 @@ def wait_for_fin(conn, fin_pack):
             conn.sock.sendto(fin_pack, (conn.dest_host, conn.dest_port))
             send_times += 1
             if send_times >= 5:
-                mutex.release
+                mutex.release()
                 break
             timer.start()
         mutex.release()
