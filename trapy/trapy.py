@@ -82,10 +82,9 @@ def send(conn: Conn, data: bytes) -> int:
         raise ConnException('Connection closed')
 
     sent = send_data(conn, data)
-    cant_bytes_sent = sent * PACKET_DATA_SIZE
-    print('Sent', cant_bytes_sent, 'bytes')      
+    print('Sent', sent, 'bytes')      
     
-    return cant_bytes_sent      
+    return sent      
 
 
 def recv(conn: Conn, length: int) -> bytes:

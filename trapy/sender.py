@@ -56,7 +56,12 @@ def send_data(conn, data : bytes):
     
     conn.seq_num = base
     mutex.release()
-    return base
+    if base == 0:
+        return 0
+    bytes_sent = packets[base - 1].data_len
+    if base > 1:
+        bytes_sent += (base - 1) * PACKET_DATA_SIZE
+    return bytes_sent
     
 def get_window_size(packet_length):
     global base, WINDOW_SIZE
