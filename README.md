@@ -1,6 +1,6 @@
 # Trapy
 
-> Mi Nombre Es La Tiza (ymicorret@mbien.com)
+> Mi Nombre Es Luis Alejandro Lara Rojas (luis.lara@estudiantes.matcom.uh.cu) C312
 
 Mi proyecto por supuesto que es la tiza.
 
